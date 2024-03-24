@@ -1,0 +1,460 @@
+//const { Console } = require("console");
+const { Client , Collection, MessageAttachment , MessageEmbed } = require("discord.js");
+const fs = require("fs");
+const { waitForDebugger } = require("inspector");
+const client = new Client({intents: 32767});
+var isReady = true;
+const commandFiles = fs.readdirSync("./commands/").filter(file => file.endsWith(".js"));
+client.commands = new Collection();
+client.msgs = require("./msgs.json");
+client.data = require("./data.json");
+client.xray = require("./XRay.json");
+const master = "master";
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
+
+const bot = {
+	symbol : {
+		MB: require('./config/config.json').bot.symbol.MB,
+		ayana: require('./config/config.json').bot.symbol.ayana,
+		mirai: require('./config/config.json').bot.symbol.mirai,
+		mantaro: require('./config/config.json').bot.symbol.mantaro,
+		nekotina: require('./config/config.json').bot.symbol.nekotina,
+		lofi: require('./config/config.json').bot.symbol.lofi
+	}
+}
+const MBbot = {
+	help : String(require('./config/config.json').bot.messages.help.title + require('./config/config.json').bot.messages.help.content),
+	saludo : require('./config/config.json').bot.messages.saludo,
+	ip_aternos: String(require('./config/config.json').bot.aternos.ip + require('./config/config.json').bot.aternos.port)
+}
+
+let symbol = bot.symbol.MB; // Definido inicialmente
+let channelbot = "gaming-chat";
+let sended=false, botinOtherChannel=false, bartraAdvice=false;
+sessionMessaging = 0;
+
+client.once('ready', () => {
+	asterisk_char="*";
+	console.log(require('./config/config.json').startbot);
+	//client.user.setActivity("Altissia");
+	console.log(`Estoy listo!, 
+            conectado en ${client.guilds.cache.size} servidores y  ${client.users.cache.size} usuarios.`);
+
+   client.user.setPresence( {
+       activity: {
+           name: `-help | Estoy en ${client.guilds.cache.size} servidores, genial no?.`,
+           type: "WATCHING"
+       },
+       status: "online"
+    });
+//	client.user.setDetails(require('./config/config.json').activity.);
+	//client.user.state(require('./config/config.json').state);
+	//client.user.details('mc.srolemine.com');
+	
+});
+/*
+client.channels.cache.get('id')
+// Insert the Channel ID in the brackets. TO find that, right click the// channel and select "Copy ID". Discord Developer must be on.let channel = message.guild.channels.cache.get(channelid)
+message.guild.channels.cache.get(channelid);
+*/
+client.on('messageCreate', message => {
+	if (message.author.bot) {
+		if (message.content.startsWith("Den la bienvenida a @")) {
+			message.reply(":Welcome:");
+		}
+	}
+	if (botinOtherChannel) {bartraAdvice=true; return message.channel.bulkDelete(1);} // Pa borrar el message de acción del bot y 
+	if (bartraAdvice) {botinOtherChannel=false; bartraAdvice=false; return message.channel.bulkDelete(2);}
+	sessionMessaging++; // Conteo de messages en la session
+	function SendhttpNotRead(symbol) {
+		message.channel.bulkDelete(1); // Pa borrar el comando del usuario
+		return message.channel.send("Se necesita del comando " + symbol + "play como prefijo para poder iniciar :\n" + message.content);
+	}
+	function deleteMessages(botargs, botcommand, channelbot) {
+		if (botcommand === "clearline") {
+			suprimirNum = botargs.map(del => parseInt(del));
+			//	message.channel.send("=purge " + suprimirNum);
+			//	message.reply(asterisk_char + ":face_with_raised_eyebrow:" + asterisk_char);
+			//	.then(message => console.log(`Ha borrado ${message.size} mensajes.\n`))
+			//	.catch(console.error);
+			asterisk_char = "";
+			return message.channel.bulkDelete(parseInt(suprimirNum)+1); // Valor con el comando ingresado
+			//if (message.content.startsWith(`$symbol`))
+			//return message.channel.send('help command');
+		}
+		message.channel.bulkDelete(1); // Pa borrar el comando del usuario
+		message.channel.send(`Creo los comandos de este bot no se encuentran en el canal de ${channelbot}.`);
+		return botinOtherChannel=true;
+	}
+/*	let getArgs = message.content.substring(symbol.length).split(" ");
+	switch (getArgs[0]) {
+		
+	}*/
+	function specificContentMessage(usermessage) {
+		if (message.content == usermessage) {
+			if (!sended) {sended=true; return message.content == usermessage;}  // El mensaje es totalemente indentico a lo comprobado
+			else {sended=false;}
+		}
+	}
+	function contentMessage(usermessage) {
+		if (message.content.toLowerCase() == usermessage.toLowerCase()) {
+			if (!sended) {sended=true; return message.content.toLowerCase() == usermessage.toLowerCase();} // El mensaje es en minisculas igual a lo comprobado
+			else {sended=false;}
+		}
+	}
+	function channelSendMessage(channelname) {
+		let Bartrachannel = message.guild.channels.cache.get(c => c.name === channelname);
+		return Bartrachannel;
+	}
+
+		function botSendMessages(usermessage, botsend) {
+			replyMessage = "con salida sin respuesta.";
+			if (specificContentMessage(usermessage)) { // 
+				message.channel.send(botsend);
+				return
+			}
+		}
+		function botReplyMessages(usermessage, botreply) {
+			replyMessage = "con salida en respuesta.";
+			if (contentMessage(usermessage)) { // 
+				message.reply(botreply);
+				return
+			}
+		}
+
+/// MisterBartra Command Bot:
+	if (message.content.startsWith(bot.symbol.MB)) {
+		symbol = bot.symbol.MB; console.log("El simbolo " + symbol + " da entrada a comando para MisterBartra.");
+		channelbot = "gaming-chat";
+		const args = message.content.slice(symbol.length).split(" ");
+//		const args = message.content.split(/ +/);
+		const command = args.shift().toLowerCase();
+		switch(command) {
+			case 'ping': {
+				const msLantency = Date.now() - message.createdTimestamp;
+				message.reply(`Pong!\n> Este mensaje tiene latencia de ${msLantency}ms en esta vez a partir desde la PC que lo envía.`);
+				const msSeconds = msLantency/1000;
+				if (msLantency>1000) {
+					return message.channel.send(`Vaya ${msLantency}ms; eso serían como ${msSeconds} segundos ala xd.\n Parece que necesitaré reacomodar el flujo de las condiciones para mejorar las salidas.\nxd`);
+				} else if (msLantency<0) {
+					return message.channel.send(`What''; como que ${msLantency}ms; xd.\n Como cuando envias un mensaje antes de que lo envies xd.\nxd`);
+				}
+			}
+			case 'help': {
+				message.reply(MBbot.help);
+				return console.log("\nRetorna la ayuda.\n");
+			}
+			case 'clearline': {
+				return deleteMessages(args, command, channelbot);
+			}
+			case 'roll' : {
+				rdmMax = args.map(rdm => parseInt(rdm));
+				if (rdmMax == '1') roll=10;
+				roll = parseInt(Math.random()*(rdmMax)+Math.random());
+				return message.reply(`El sistema retorna un número azar-roll de ${roll} point(s)`);
+			}
+			case 'sumar': case '+': {
+				const sumArgs = args.map(s => parseFloat(s));
+				const suma = sumArgs.reduce((counter, s) => counter += s);
+				message.reply(`La suma de valores da como resultado ${suma}!`);
+				return;
+			}
+			case 'restar': case '-': {
+				const resArgs = args.map(r => parseFloat(r));
+				const resta = resArgs.reduce((counter, r) => counter -= r);
+				message.reply(`La resta de valores da como resultado ${resta}!`);
+				return;
+			}
+			case 'multiplicar': case '*': {
+				const multiArgs = args.map(m => parseFloat(m));
+				const multi = multiArgs.reduce((counter, m) => counter *= m);
+				message.reply(`La multiplicación de valores da como resultado ${multi}!`);
+				return;
+			}
+			case 'dividir': case '/': {
+				const divArgs = args.map(d => parseFloat(d));
+				const div = divArgs.reduce((counter, d) => counter /= d);
+				message.reply(`La división de valores da como resultado ${div}!`);
+				return;
+			}
+			case 'join': {
+				function botJoinChannel(channelname, botmessage) {
+					//const channel = client.channels.cache.get();
+					channelSendMessage(channelname);
+					Bartrachannel.message.channel.send(botmessage);
+					if (!channel) return console.error("El canal no existe!");
+					channel.join().then(connection => {
+						// Yay, it worked!
+						console.log("Successfully connected.");
+					}).catch(e => {
+						// Oh no, it errored! Let's log it to console :)
+						console.error(e);
+					});
+				}
+				botJoinChannel("965648749017837749");
+				return;
+			}
+			case '########music': {
+				const settings = require('./config/music-config.json');
+				var isReady = true;
+					function startsWithInList(message, list) {
+				  var found = false;
+				  list.forEach(function (item) {
+					if (message.startsWith(item)) {
+					  found = true;
+					}
+				  })
+				  return found;
+				}
+				function foundsInList(message, list) {
+				  var found = false;
+				  list.forEach(function (item) {
+					if (message === item ) {
+					  found = true;
+					}
+				  })
+				  return found;
+				}
+				//
+				if (foundsInList(message.content, settings.commandList)) {
+					fs.readdir(settings.filesDir, function (err, files) {
+					  if (err) {return message.channel.send(settings.warningFolderNotFoundSentence+settings.filesDir);} 
+					  let listTxt = "";
+					  files.forEach(function (file) {
+						if (file.endsWith('.MP3').toLowerCase()) {
+						  listTxt += `\`${file.split('.')[0]}\` `;
+						}
+					  })
+					  message.channel.send(settings.filesListSentence);
+					  message.channel.send(listTxt);
+					})
+					return;
+				}
+				if (isReady && startsWithInList(message.content, settings.commandPlay)) {
+					isReady = false;
+					const args = message.content.slice(10).trim().split(' ');
+					if (args.length != 1 || !args[0] || args[0] === "" ) {return message.channel.send(settings.warningPlayArgsSentence);}
+					var voiceChannel = message.member.voice.channel;
+					voiceChannel.join().then( connection => {
+					  const dispatcher = connection.play(settings.filesDir+args[0]+'.mp3')
+					  dispatcher.on('finish', () => {
+						voiceChannel.leave();
+						isReady = true;
+					  })
+					});
+				}
+				if (startsWithInList(message.content, settings.commandStop)) {
+					message.member.voice.channel.leave();
+					isReady = true;
+				}
+				console.log("Entra en la situación de música");
+				return;
+			}
+			case 'img': {
+				const file = new MessageAttachment("https://www.wikihow.com/images_en/thumb/c/c9/Trace-an-IP-Address-Step-1-Version-10.jpg/v4-728px-Trace-an-IP-Address-Step-1-Version-10.jpg");
+				// for a file on projects root if your file is in another subfolder just type the relative path to it 
+				message.channel.send(`${file}`);
+				return;
+			}
+			case "write": {
+				let ideas = client.data[master]//.message;
+				let number = ideas + 1;
+				let random = Math.floor(Math.random() * ideas);
+				editedmessage = message.content.slice(7);
+				client.msgs [number] = {
+				  message: editedmessage
+				}
+				const readout = message.guild.channels.cache.find(c => c.name === "bartra-commands");
+				fs.writeFile("./msgs.json", JSON.stringify(client.msgs, null, 4), err => {
+				  if (err)throw err});
+				  message.channel.send("Message Writen");
+				fs.writeFile("./data.json", JSON.stringify(client.data, null, 4), err => {
+				  if (err)throw err});
+				  message.channel.send("Message Writen");
+				fs.writeFile("./XRay.json", JSON.stringify(client.xray/*, null, 4*/), err => {
+					if (err)throw err});
+				return;
+			}
+			case "showerthought": {
+				let _message = client.msgs[random]//.message;
+				message.channel.send(`Shower thought ${random}: ` + _message);
+				return;
+			}
+			case "members": {
+				let memCount = message.guild.members.cache.size;
+				let userCount = message.client.users.cache.size;
+				let aver = client.guilds.cache.size;
+				message.channel.send(`Cache Size: ${memCount} members and ${userCount}, ${aver} all users.`);
+			}
+			default: return;
+		}
+		return;
+	}
+// Para los casos de texto no comandos: 
+	else {
+		var replyMessage = "sin algo definido a realizar."; // Otros Mensajes no soy BartraBOT (Otras escrituras de mensaje):
+//		if (!message.content.startsWith(symbol)) {
+			botSendMessages("@everyone","CHICOSS!!!");
+			botSendMessages("xd","xd");
+			botSendMessages("xD","xD");
+			botSendMessages("Xd","Xd");
+			botSendMessages("XD","XD");
+			
+			botSendMessages("@ jTime", "@Pituco que dice no ser pituco");
+			botReplyMessages("HOLA", MBbot.saludo);
+			botReplyMessages(":BotanVibrin:", ":BotanVibrin:");
+			botReplyMessages("HOLAS", MBbot.saludo);
+			botReplyMessages("HOLAP", MBbot.saludo);
+			botReplyMessages("HI", MBbot.saludo);
+			botReplyMessages("HOLA BARTRABOT", MBbot.saludo);
+			botReplyMessages("HOLA MISTERBARTRA", MBbot.saludo);
+			botReplyMessages("EL MISTERBARTRA", MBbot.saludo);
+			botReplyMessages("IP", MBbot.ip_aternos);
+			botReplyMessages("SERVER", MBbot.ip_aternos);
+			botReplyMessages("EL SERVER", MBbot.ip_aternos);
+			botReplyMessages("QUE TAL", "BIEŃ");
+			botReplyMessages("si",  "sep, eso!")
+			botReplyMessages("@MISTERBARTRA", "Si?");
+			botReplyMessages("@MISTERBARTRA", "Dime");
+			botReplyMessages("Oe", "Relax, algo ocurre?");
+			botReplyMessages("o bartra", "Dime");
+			botReplyMessages("bartra", "Dime");
+			botReplyMessages("no sirve", "Como?");
+			botReplyMessages("ayana", "");
+			
+			botSendMessages("a", "Aya");
+			botReplyMessages("@REBORNHYDRA", "Está conectado *pero..* Estará?:°");
+			botReplyMessages("JOHAO", "Ya llegará Johao *seguramente* xd");
+			
+	//	}
+	}
+/// Ayana Command Bot:
+	if (message.content.startsWith(bot.symbol.ayana)) {
+		symbol = bot.symbol.ayana; console.log("El simbolo " + symbol + " da entrada a comando para Ayana.");
+		channelbot = "ayana-bot";
+		const ayana_args = message.content.slice(symbol.length).split(' ');
+		const ayana_command = ayana_args.shift().toLowerCase();
+		if (message.channel.name.includes(channelbot)) {
+			function botAyana() {
+				if (message.content.startsWith(symbol + ' '))
+					return message.channel.send("Comando desconocido.\n> Consulta a *" + bot.symbol.ayana + "help* para ver los comandos disponibles para AyanaBot.");
+				switch (ayana_command) {
+					case 'play': case 'queue': {
+						const acommandArgs = ayana_args.map(a => String(a));
+						const awordArgs = acommandArgs.reduce((word, a) => word += a);
+						if (awordArgs == undefined) {
+							var acasecommandsong = "";
+							if (ayana_command === "play") casecommandsong="Es";
+							if (ayana_command === "queue") casecommandsong="No es";
+							channelSendMessage("ayana-bot", String("Prueba usar el comando con argumentos suficientes(sea 1 link de youtube o palabras referentes al artista y/o su canción) para su funcionamiento.\n> " + casecommandsong + " requerido que el comando se realice estando dentro de un canal de voz."));
+							//message.reply("Prueba usar el comando con argumentos suficientes(sea 1 link de youtube o palabras referentes al artista y/o su canción) para su funcionamiento.\n> " + casecommandsong + " requerido que el comando se realice estando dentro de un canal de voz.");
+							return;
+						}
+					}
+					case 'stop': {
+						botReplyMessages("=", MBbot.saludo);
+					}
+					default: return;
+				}
+			}
+			botAyana();
+		} else {deleteMessages(ayana_args, ayana_command, channelbot)}
+	}
+/// Mirai Command Bot:
+	else if (message.content.startsWith(bot.symbol.mirai)) {
+		symbol = bot.symbol.mirai; console.log("El simbolo " + symbol + " da entrada a comando para Mirai.");
+		channelbot = "mirai-bot";
+		const mirai_args = message.content.slice(symbol.length).split(' ');
+		const mirai_command = mirai_args.shift().toLowerCase();
+		if (message.channel.name.includes(channelbot)) {
+			function botMirai() {
+				if (message.content.startsWith(symbol))
+					return message.channel.send("Comando desconocido.\n> Consulta a *m.help* para ver los comandos disponibles para MiraiBot.");
+				switch (mirai_command) {
+					case 'play': case 'queue': {
+						const micommandArgs = mirai_args.map(mi => String(mi));
+						const miwordArgs = micommandArgs.reduce((word, mi) => word += mi);
+						if (miwordArgs == undefined) {
+							message.reply("Prueba usar en comando con argumentos suficientes(sea 1 link de youtube o palabras referentes al artista y/o su canción) para su funcionamiento.\n> Es requerido que el comando se realice estando dentro de un canal de voz.");
+							return;
+						}
+					}
+					default: return;
+				}
+			}
+			botMirai();
+		} else {deleteMessages(mirai_args, mirai_command, channelbot)}
+	}
+/// Mantaro Command Bot:
+	else if (message.content.startsWith(bot.symbol.mantaro)) {
+		symbol = bot.symbol.mantaro; console.log("El simbolo " + symbol + " da entrada a comando para Mantaro.");
+		channelbot = "mantaro-bot";
+		const mantaro_args = message.content.slice(symbol.length).split(' ');
+		const mantaro_command = mantaro_args.shift().toLowerCase();
+		if (message.channel.name.includes(channelbot)) {
+			function botMantaro() {
+				if (message.content.startsWith(symbol))
+					return message.channel.send("Comando desconocido.\n> Consulta a *" + bot.symbol.mantaro + "help* para ver los comandos disponibles para MantaroBot.");
+				switch (mantaro_command) {
+					case 'play': case 'queue': {
+						const macommandArgs = mantaro_args.map(ma => String(ma));
+						const mawordArgs = macommandArgs.reduce((word, ma) => word += ma);
+						if (mawordArgs == undefined) {
+							message.reply("Prueba usar en comando con argumentos suficientes(sea 1 link de youtube o palabras referentes al artista y/o su canción) para su funcionamiento.\n> Es requerido que el comando se realice estando dentro de un canal de voz.");
+							return;
+						}
+					}
+					default: return;
+				}
+			}
+			botMantaro();
+		} else {deleteMessages(mantaro_args, mantaro_command, channelbot)}
+	}
+/// Nekotina Command Bot:
+	else if (message.content.startsWith(bot.symbol.nekotina)) {
+		symbol = bot.symbol.nekotina; console.log("El simbolo " + symbol + " da entrada a comando para Nekotina.");
+		channelbot = "nekotina-bot";
+		const nekotina_args = message.content.slice(symbol.length).split(' ');
+		const nekotina_command = nekotina_args.shift().toLowerCase();
+		if (message.channel.name.includes(channelbot)) {
+			function botNekotina() {
+				if (message.content.startsWith(symbol))
+					return message.channel.send("Comando desconocido.\n> Consulta a *" + bot.symbol.nekotina + "help* para ver los comandos disponibles para NekotinaBot.");
+				switch (nekotina_command) {
+					case 'play': case 'queue': {
+						const nktcommandArgs = nekotina_args.map(nkt => String(nkt));
+						const nktwordArgs = nktcommandArgs.reduce((word, nkt) => word += nkt);
+						if (nktwordArgs == undefined) {
+							message.reply("Prueba usar en comando con argumentos suficientes(sea 1 link de youtube o palabras referentes al artista y/o su canción) para su funcionamiento.\n> Es requerido que el comando se realice estando dentro de un canal de voz.");
+							return;
+						}
+					}
+					default: return;
+				}
+			}
+			botNekotina();
+		} else {//deleteMessages(nekotina_args, nekotina_command, channelbot)}
+	}}
+/// Lofi Command Bot:
+	else if (message.content.startsWith(bot.symbol.lofi)) {
+		symbol = bot.symbol.lofi; console.log("El simbolo " + symbol + " da entrada a comando para Lofi.");
+		channelbot = "lofi-bot";
+		const nekotina_args = message.content.slice(symbol.length).split(' ');
+		const nekotina_command = nekotina_args.shift().toLowerCase();
+		if (message.channel.name.includes(channelbot) || message.guild.channels.cache.find(c => c.name === channelbot)) {
+			function botLofi() {
+				if (message.content.startsWith(symbol))
+					return message.channel.send("Comando desconocido.\n> Consulta a *" + bot.symbol.lofi + "help* para ver los comandos disponibles para NekotinaBot.");
+			}
+			botLofi();
+		} else {deleteMessages(nekotina_args, nekotina_command, channelbot)}
+	} else {
+		if (message.content.startsWith("http") && !(message.channel.name == "gaming-chat" || message.channel.name == "hydra-chillbot"))
+			return SendhttpNotRead(symbol);
+	}
+});
+client.login(require('./key.json').key)
